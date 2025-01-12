@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>倒數計時器</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            height: 100vh;
+            background-color: #333;  /* 深色背景 */
+            color: #fff;  /* 文字顏色為白色 */
+        }
+        .settings {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #ddd;  /* 設置設置區域文字為淺色 */
+        }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .buttons button {
+            width: 60px;
+            height: 40px;
+            font-size: 14px;
+            background-color: #4CAF50;  /* 深色模式的綠色 */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .buttons button.running {
+            background-color: #f44336;  /* 當計時器運行中，按鈕顯示為紅色 */
+        }
+        .buttons button:hover {
+            background-color: #45a049;  /* 滑鼠懸停時顯示更暗的綠色 */
+        }
+
+        .timers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: flex-start;
+            width: 80%;
+        }
+        .timer {
+            font-size: 48px;
+            font-family: 'Courier New', Courier, monospace;
+            background: #444;  /* 計時器的背景顏色 */
+            color: #fff;  /* 文字顏色為白色 */
+            padding: 10px 20px;
+            border: 2px solid #aaa;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .timer.yellow {
+            background: #FFEB3B;  /* 當倒數小於10分鐘時，背景變為黃色 */
+            color: #333;  /* 字體顏色變為深色 */
+        }
+        .timer.red {
+            background: #f44336;  /* 當倒數結束時，背景變為紅色 */
+            color: white;
+        }
+        .timer button {
+            margin-top: 10px;
+            width: 80px;
+            height: 30px;
+            font-size: 14px;
+            background-color: #f44336;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .timer button:hover {
+            background-color: #d32f2f;
+        }
+
+        .start-time, .end-time {
+            font-size: 12px;
+            position: absolute;
+            color: #ddd;  /* 設置顯示時間的文字為淺色 */
+        }
+        .start-time {
+            bottom: 10px;
+            left: 10px;
+        }
+        .end-time {
+            bottom: 10px;
+            right: 10px;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 10px;
+            font-size: 14px;
+            color: #ddd;  /* 設置頁腳文字顏色 */
+        }
+    </style>
+</head>
+<body>
+    <div class="settings">
+        <label>
+            <input type="radio" name="time" value="90" checked> 平日 90 分鐘
+        </label>
+        <label>
+            <input type="radio" name="time" value="60"> 假日 60 分鐘
+        </label>
+        <label>
+            <input type="radio" name="time" value="180"> 平日 X2 180 分鐘
+        </label>
+        <label>
+            <input type="radio" name="time" value="120"> 假日 X2 120 分鐘
+        </label>
+    </div>
+
+    <div class="buttons">
+        <div class="button-row">
+            <button id="button-1" onclick="startTimer(1)">1號</button>
+            <button id="button-2" onclick="startTimer(2)">2號</button>
+            <button id="button-3" onclick="startTimer(3)">3號</button>
+            <button id="button-5" onclick="startTimer(5)">5號</button>
+            <button id="button-6" onclick="startTimer(6)">6號</button>
+            <button id="button-7" onclick="startTimer(7)">7號</button>
+            <button id="button-8" onclick="startTimer(8)">8號</button>
+        </div>
+        <div class="button-row">
+            <button id="button-20" onclick="startTimer(20)">20號</button>
+            <button id="button-21" onclick="startTimer(21)">21號</button>
+            <button id="button-22" onclick="startTimer(22)">22號</button>
+            <button id="button-23" onclick="startTimer(23)">23號</button>
+            <button id="button-25" onclick="startTimer(25)">25號</button>
+            <button id="button-26" onclick="startTimer(26)">26號</button>
+        </div>
+        <div class="button-row">
+            <button id="button-10" onclick="startTimer(10)">10號</button>
+            <button id="button-11" onclick="startTimer(11)">11號</button>
+            <button id="button-12" onclick="startTimer(12)">12號</button>
+            <button id="button-13" onclick="startTimer(13)">13號</button>
+            <button id="button-15" onclick="startTimer(15)">15號</button>
+            <button id="button-16" onclick="startTimer(16)">16號</button>
+        </div>
+    </div>
+
+    <div id="timers" class="timers"></div>
+
+    <footer>楓月小集溫泉專用</footer>
+
+    <script>
+        let timerDuration = 90;
+
+        const timeOptions = document.querySelectorAll('input[name="time"]');
+        timeOptions.forEach(option => {
+            option.addEventListener('change', () => {
+                timerDuration = parseInt(option.value) + 5;
+            });
+        });
+
+        // 記錄按鈕的點擊次數
+        const buttonCounts = {};
+
+        function startTimer(number) {
+            // 更新計數器
+            if (!buttonCounts[number]) {
+                buttonCounts[number] = 0;
+            }
+            buttonCounts[number]++;
+            
+            // 顯示到控制台
+            console.log(`${number}號按鈕被點擊了 ${buttonCounts[number]} 次`);
+
+            const timerId = `timer-${number}`;
+            const buttonId = `button-${number}`;
+            const button = document.getElementById(buttonId);
+
+            if (document.getElementById(timerId)) {
+                alert(`${number}號的計時器已經在運行！`);
+                return;
+            }
+
+            if (button) {
+                button.classList.add('running');
+            }
+
+            const durationInSeconds = timerDuration * 60;
+            const now = new Date();
+            const endTime = new Date(now.getTime() + durationInSeconds * 1000);
+
+            const startFormattedTime = now.toTimeString().slice(0, 5);
+            const endFormattedTime = endTime.toTimeString().slice(0, 5);
+
+            const timerDiv = document.createElement('div');
+            timerDiv.id = timerId;
+            timerDiv.className = 'timer';
+
+            const timerDisplay = document.createElement('div');
+            timerDiv.appendChild(timerDisplay);
+
+            const startTimeDisplay = document.createElement('div');
+            startTimeDisplay.className = 'start-time';
+            startTimeDisplay.textContent = `開始時間: ${startFormattedTime}`;
+            timerDiv.appendChild(startTimeDisplay);
+
+            const endTimeDisplay = document.createElement('div');
+            endTimeDisplay.className = 'end-time';
+            endTimeDisplay.textContent = `結束時間: ${endFormattedTime}`;
+            timerDiv.appendChild(endTimeDisplay);
+
+            const cancelButton = document.createElement('button');
+            cancelButton.textContent = '取消';
+            cancelButton.onclick = () => {
+                clearInterval(countdownInterval);
+                timerDiv.remove();
+                if (button) {
+                    button.classList.remove('running');
+                }
+                sortTimers();
+            };
+            timerDiv.appendChild(cancelButton);
+
+            document.getElementById('timers').appendChild(timerDiv);
+            sortTimers();
+
+            function updateTimerDisplay() {
+                const remainingTime = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                const minutes = String(Math.floor(remainingTime / 60)).padStart(2, '0');
+                const seconds = String(remainingTime % 60).padStart(2, '0');
+                timerDisplay.textContent = `${number}號: ${minutes}:${seconds}`;
+
+                if (remainingTime <= 600 && !timerDiv.classList.contains('red')) {
+                    timerDiv.classList.add('yellow');
+                }
+
+                if (remainingTime === 0) {
+                    timerDiv.classList.remove('yellow');
+                    timerDiv.classList.add('red');
+                    clearInterval(countdownInterval);
+                }
+            }
+
+            updateTimerDisplay();
+            const countdownInterval = setInterval(updateTimerDisplay, 1000);
+        }
+
+        function sortTimers() {
+            const timersContainer = document.getElementById('timers');
+            const timers = Array.from(timersContainer.children);
+            timers.sort((a, b) => {
+                const aTime = parseInt(a.querySelector('div').textContent.split(':')[1], 10);
+                const bTime = parseInt(b.querySelector('div').textContent.split(':')[1], 10);
+                return aTime - bTime;
+            });
+            timers.forEach(timer => timersContainer.appendChild(timer));
+        }
+    </script>
+</body>
+</html>
